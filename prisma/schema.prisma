@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String?
+  password  String
+  pseudo    String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  posts     Post[]
+  comments  Comment[]
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  Int
+  comments  Comment[]
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  Int
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+}
+
+model Recipe {
+  id              Int               @id @default(autoincrement())
+  title           String            @unique
+  content         String
+  timePreparation String            @default("0")
+  timeCooking     String            @default("0")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  category        RecipeCategory    @relation(fields: [categoryId], references: [id])
+  categoryId      Int
+  ingredients     RecipeIngredient[]
+  steps           Step[]            // Nouvelle relation avec le modèle Step
+}
+
+model Step {
+  id        Int      @id @default(autoincrement())
+  order     Int      // Ordre de l'étape
+  title     String   // Titre de l'étape (facultatif)
+  content   String   // Description de l'étape
+  duration  String?  // Durée spécifique pour cette étape (facultatif)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  recipeId  Int
+}
+
+model Ingredient {
+  id            Int                 @id @default(autoincrement())
+  name          String              @unique
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  // Relations
+  category      IngredientCategory  @relation(fields: [categoryId], references: [id])
+  categoryId    Int
+  recipes       RecipeIngredient[]
+  type          IngredientType      @relation(fields: [typeId], references: [id])
+  typeId        Int
+}
+
+model RecipeIngredient {
+  id           Int         @id @default(autoincrement())
+  recipe       Recipe      @relation(fields: [recipeId], references: [id])
+  recipeId     Int
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
+  ingredientId Int
+}
+
+model IngredientCategory {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  ingredients Ingredient[]
+}
+
+model RecipeCategory {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  recipes   Recipe[]
+}
+
+model IngredientType {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relations
+  ingredients Ingredient[]
+}
